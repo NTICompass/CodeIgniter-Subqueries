@@ -4,7 +4,6 @@ class MY_DB_mysqli_driver extends CI_DB_mysqli_driver{
 
 	var $CI;
 	var $db = NULL;
-	var $subquery = FALSE;
 	var $statement = '';
 
 	function __construct($params){
@@ -13,9 +12,9 @@ class MY_DB_mysqli_driver extends CI_DB_mysqli_driver{
 	}
 
 	function start_subquery($statement){
-		$this->subquery = TRUE;
 		$this->db = $this->CI->load->database('', true);
 		$this->statement = $statement;
+		return $this->db;
 	}
 
 	function end_subquery($alias){
@@ -23,37 +22,9 @@ class MY_DB_mysqli_driver extends CI_DB_mysqli_driver{
 		$statement = $this->statement;
 		parent::$statement("($sql) AS $alias");
 
-		$this->subquery = FALSE;
 		$this->db = NULL;
 		$this->statement = '';
 	}
-
-	/*******************************************/
-
-	function select($select='*', $escape=NULL){
-		if($this->subquery){
-			$this->db->select($select, $escape);
-			return $this;
-		}
-		return parent::select($select, $escape);
-	}
-
-	function from($from){
-		if($this->subquery){
-			$this->db->from($from);
-			return $this;
-		}
-		return parent::from($from);
-	}
-
-	function where($key, $value=NULL, $escape=TRUE){
-		if($this->subquery){
-			$this->db->where($key,$value,$escape);
-			return $this;
-		}
-		return parent::where($key,$value,$escape);
-	}
-
 }
 
 ?>
