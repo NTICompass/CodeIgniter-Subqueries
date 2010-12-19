@@ -11,9 +11,9 @@ class MY_Loader extends CI_Loader{
 	 *
 	 * FROM: http://codeigniter.com/wiki/Extending_Database_Drivers/
 	 */
-	function database($params = '', $return = FALSE, $active_record = NULL){
+	function database($params = '', $return = FALSE, $active_record = FALSE){
 		// Do we even need to load the database class?
-		if(class_exists('CI_DB') AND $return == FALSE AND $active_record == FALSE){
+		if(class_exists('CI_DB') AND $return == FALSE AND $active_record == FALSE AND isset($CI->db) AND is_object($CI->db)){
 			return FALSE;
 		}
 
