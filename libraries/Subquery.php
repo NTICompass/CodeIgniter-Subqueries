@@ -2,7 +2,7 @@
 
 /**
  * NTICompass' CodeIgniter Subquery Library
- * (Requires Active Record)
+ * (Requires Active Record and PHP5)
  *
  * By: Eric Siegel
  * http://NTICompassInc.com
