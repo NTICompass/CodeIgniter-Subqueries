@@ -43,6 +43,17 @@ class Subquery{
 	}
 
 	/**
+	 * start_union - Creates a new database object to be used for unions
+	 *
+	 * NOTE: Please do all 'ORDER BY' or other modifiers BEFORE start_union
+	 *
+	 * @return A new database object to use for a union query
+	 */
+	 function start_union(){
+		 return $this->start_subquery('');
+	 }
+
+	/**
 	 * end_subquery - Closes the database object and writes the subquery
 	 *
 	 * @param $alias - Alias to use in query
@@ -65,7 +76,28 @@ class Subquery{
 			$database->$statement("$sql $alias");
 		}
 	}
-	
+
+	/**
+	 * end_union - Combines all opened db objects into a UNION ALL query
+	 *
+	 * @param none
+	 *
+	 * @return none
+	 */
+	 function end_union(){
+		$queries = array();
+		$this->db = array_reverse($this->db);
+		while($db = array_pop($this->db)){
+			$queries[] = $db->_compile_select();
+			array_pop($this->statement);
+		}
+		if(substr($queries[0], 0, 6) == 'SELECT'){
+			$queries[0] = substr($queries[0], 7);
+		}
+		$sql = implode(' UNION ALL ', $queries);
+		$this->CI->db->select($sql, false);
+	 }
+
 	/**
 	 * join_range - Helper function to CROSS JOIN a list of numbers
 	 *
@@ -81,7 +113,7 @@ class Subquery{
 		}
 		$range[0] = substr($range[0], 7);
 		$range = implode(' UNION ALL ', $range);
-		
+
 		$sub = $this->start_subquery('join', 'inner');
 		$sub->select($range, false);
 		$this->end_subquery($table_name);
