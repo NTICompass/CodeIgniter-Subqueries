@@ -72,6 +72,9 @@ class Subquery{
 			$join_on = array_pop($this->join_on);
 			$database->$statement("$sql $alias", $join_on, $join_type);
 		}
+		elseif(strtolower($statement) == 'select'){
+			$database->$statement("$sql $alias", FALSE);
+		}
 		else{
 			$database->$statement("$sql $alias");
 		}
