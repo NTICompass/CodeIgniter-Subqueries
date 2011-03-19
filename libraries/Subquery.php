@@ -3,6 +3,8 @@
 /**
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
+ * 
+ * Version 1.2
  *
  * By: Eric Siegel
  * http://NTICompassInc.com
@@ -13,6 +15,7 @@ class Subquery{
 	var $statement;
 	var $join_type;
 	var $join_on;
+	var $unions;
 
 	function __construct(){
 		$this->CI =& get_instance();
@@ -20,6 +23,7 @@ class Subquery{
 		$this->statement = array();
 		$this->join_type = array();
 		$this->join_on = array();
+		$this->unions = 0;
 	}
 
 	/**
@@ -50,6 +54,7 @@ class Subquery{
 	 * @return A new database object to use for a union query
 	 */
 	 function start_union(){
+		 $this->unions++;
 		 return $this->start_subquery('');
 	 }
 
@@ -66,7 +71,7 @@ class Subquery{
 		$alias = $alias!='' ? "AS $alias" : $alias;
 		$statement = array_pop($this->statement);
 		$database = (count($this->db) == 0)
-			? $this->CI->db: $this->db[count($this->db)-1];
+			? $this->CI->db : $this->db[count($this->db)-1];
 		if(strtolower($statement) == 'join'){
 			$join_type = array_pop($this->join_type);
 			$join_on = array_pop($this->join_on);
@@ -89,16 +94,19 @@ class Subquery{
 	 */
 	 function end_union(){
 		$queries = array();
-		$this->db = array_reverse($this->db);
-		while($db = array_pop($this->db)){
+		for($this->unions; $this->unions > 0; $this->unions--){
+			$db = array_pop($this->db);
 			$queries[] = $db->_compile_select();
 			array_pop($this->statement);
 		}
+		$queries = array_reverse($queries);
 		if(substr($queries[0], 0, 6) == 'SELECT'){
 			$queries[0] = substr($queries[0], 7);
 		}
 		$sql = implode(' UNION ALL ', $queries);
-		$this->CI->db->select($sql, false);
+		$database = (count($this->db) == 0)
+			? $this->CI->db : $this->db[count($this->db)-1];
+		$database->select($sql, false);
 	 }
 
 	/**
