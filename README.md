@@ -35,3 +35,64 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
 *Parameters*: None
 
 *Returns*: None
+
+**join_range**: Helper function to CROSS JOIN a list of numbers (From [this][1] StackOverflow answer)
+*Parameters*:
+
+ - $start: Range start
+ - $end: Range end
+ - $alias: Alias for number list
+ - $table_name: JOINed tables need an alias (Optional)
+
+*Returns*: None
+
+## Examples ##
+
+**Subquery in a SELECT statement**  
+*SQL*:
+
+    SELECT `word`, (SELECT `number` FROM (`numbers`) WHERE `numberID` = 2) AS number FROM (`words`) WHERE `wordID` = 3
+
+*Active Record*:
+
+    $this->db->select('word')->from('words')->where('wordID', 3);
+    $sub = $this->subquery->start_subquery('select');
+    $sub->select('number')->from('numbers')->where('numberID', 2);
+    $this->subquery->end_subquery('number'); 
+
+**Subquery in a FROM statement**  
+*SQL*:
+
+    SELECT `test`, `test2` FROM ((SELECT 3 AS test) AS testing, (SELECT 4 AS test2) AS testing2) 
+
+*Active Record*:
+
+    $this->db->select('test');
+    $sub = $this->subquery->start_subquery('from');
+    $sub->select('3 AS test', false);
+    $this->subquery->end_subquery('testing');
+    $this->db->select('test2');
+    $sub = $this->subquery->start_subquery('from');
+    $sub->select('4 AS test2', false);
+    $this->subquery->end_subquery('testing2');
+
+**UNION ALL**  
+*SQL*:
+
+    SELECT 1 AS A
+    UNION ALL
+    SELECT 2 AS A
+    UNION ALL
+    SELECT 3 AS A
+
+*Active Record*:
+
+    $sub1 = $this->subquery->start_union();
+    $sub1->select('1 AS A', false);
+    $sub2 = $this->subquery->start_union();
+    $sub2->select('2 AS A', false);
+    $sub3 = $this->subquery->start_union();
+    $sub3->select('3 AS A', false);
+    $this->subquery->end_union();
+
+  [1]: http://stackoverflow.com/questions/4155873/mysql-find-in-set-vs-in/4156063#4156063
