@@ -36,7 +36,7 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
 
 *Returns*: None
 
-**join_range**: Helper function to CROSS JOIN a list of numbers (From [this][1] StackOverflow answer)
+**join_range**: Helper function to CROSS JOIN a list of numbers (From [this][1] StackOverflow answer)  
 *Parameters*:
 
  - $start: Range start
