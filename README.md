@@ -1,3 +1,5 @@
+**Active Record Subqueries**
+
 ## Informtion ##
 
 This is a subquery library for CodeIgniter’s (1.7.x and 2.x) active record class.  It lets you use active record methods to create subqueries in SQL queries.
