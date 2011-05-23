@@ -1,4 +1,5 @@
-**Active Record Subqueries**
+Active Record Subqueries
+========================
 
 ## Informtion ##
 
