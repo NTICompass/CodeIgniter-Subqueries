@@ -63,6 +63,39 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
     $sub->select('number')->from('numbers')->where('numberID', 2);
     $this->subquery->end_subquery('number'); 
 
+**Subquery in a WHERE statement**  
+*SQL*:
+
+    SELECT `test`, `test2` FROM table WHERE id IN (SELECT IDs FROM idTable WHERE date = '2011-07-10')
+
+*Active Record*:
+
+    $this->db->select('test');
+    $this->db->select('test2');
+    $this->db->from('table');
+    $sub = $this->subquery->start_subquery('where_in');
+    $sub->select('IDs');
+    $sub->from('idTable');
+    $sub->where('date', '2011-07-10');
+    $this->subquery->end_subquery('id');
+    
+**Subquery in a WHERE statement**  
+*SQL*:
+
+    SELECT `test`, `test2` FROM table WHERE id = (SELECT IDs FROM idTable WHERE date = '2011-07-10' AND name = 'Eric')
+
+*Active Record*:
+
+    $this->db->select('test');
+    $this->db->select('test2');
+    $this->db->from('table');
+    $sub = $this->subquery->start_subquery('where');
+    $sub->select('IDs');
+    $sub->from('idTable');
+    $sub->where('date', '2011-07-10');
+    $sub->where('name', 'Eric');
+    $this->subquery->end_subquery('id');
+
 **Subquery in a FROM statement**  
 *SQL*:
 

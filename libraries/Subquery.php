@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  * 
- * Version 1.2
+ * Version 1.3
  *
  * By: Eric Siegel
  * http://NTICompassInc.com
@@ -61,27 +61,33 @@ class Subquery{
 	/**
 	 * end_subquery - Closes the database object and writes the subquery
 	 *
-	 * @param $alias - Alias to use in query
+	 * @param $alias - Alias to use in query, or field to use for WHERE
 	 *
 	 * @return none
 	 */
 	function end_subquery($alias=''){
 		$db = array_pop($this->db);
 		$sql = "({$db->_compile_select()})";
-		$alias = $alias!='' ? "AS $alias" : $alias;
+		$as_alias = $alias!='' ? "AS $alias" : $alias;
 		$statement = array_pop($this->statement);
 		$database = (count($this->db) == 0)
 			? $this->CI->db : $this->db[count($this->db)-1];
 		if(strtolower($statement) == 'join'){
 			$join_type = array_pop($this->join_type);
 			$join_on = array_pop($this->join_on);
-			$database->$statement("$sql $alias", $join_on, $join_type);
+			$database->$statement("$sql $as_alias", $join_on, $join_type);
 		}
 		elseif(strtolower($statement) == 'select'){
-			$database->$statement("$sql $alias", FALSE);
+			$database->$statement("$sql $as_alias", FALSE);
+		}
+		elseif(strtolower($statement) == 'where'){
+			$database->where("`$alias` = $sql", NULL, FALSE);
+		}
+		elseif(strtolower($statement) == 'where_in'){
+			$database->where("`$alias` IN $sql", NULL, FALSE);
 		}
 		else{
-			$database->$statement("$sql $alias");
+			$database->$statement("$sql $as_alias");
 		}
 	}
 
