@@ -30,7 +30,7 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
 **end_subquery**: Closes the database object and writes the subquery  
 *Parameters*:
 
- - $alias: Alias to use in query
+ - $alias: Alias to use in query, or field to use for WHERE
 
 *Returns*: None
 
