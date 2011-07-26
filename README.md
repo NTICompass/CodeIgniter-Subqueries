@@ -112,6 +112,23 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
     $sub->select('4 AS test2', false);
     $this->subquery->end_subquery('testing2');
 
+**Subquery in a JOIN statement**  
+*SQL*:
+
+    SELECT `test`.`a`, `t`.`b`, `test`.`field`
+    FROM `test`
+    LEFT JOIN (SELECT `ID`,`b` FROM `test2` WHERE `date` > '2011-01-01') AS `t` ON `t`.`ID` = `test`.`ID`
+    WHERE `test`.`field` = 4
+
+*Active Record*:
+
+    $this->db->select('test.a, t.b, test.field');
+    $this->db->from('test');
+    $sub = $this->subquery->start_subquery('join', 'left', 't.ID=test.ID');
+    $sub->select('ID, b')->from('test2')->where('date >', '2011-01-01');
+    $this->subquery->end_subquery('t');
+    $this->db->where('test.field', 4);
+
 **UNION ALL**  
 *SQL*:
 
