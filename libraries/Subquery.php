@@ -62,10 +62,11 @@ class Subquery{
 	 * end_subquery - Closes the database object and writes the subquery
 	 *
 	 * @param $alias - Alias to use in query, or field to use for WHERE
+	 * @param $operator - Operator to use for WHERE (=, !=, <, etc.)/WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN)
 	 *
 	 * @return none
 	 */
-	function end_subquery($alias=''){
+	function end_subquery($alias='', $operator=TRUE){
 		$db = array_pop($this->db);
 		$sql = "({$db->_compile_select()})";
 		$as_alias = $alias!='' ? "AS $alias" : $alias;
@@ -81,10 +82,12 @@ class Subquery{
 			$database->$statement("$sql $as_alias", FALSE);
 		}
 		elseif(strtolower($statement) == 'where'){
-			$database->where("`$alias` = $sql", NULL, FALSE);
+			$operator = $operator === TRUE ? '=' : $operator;
+			$database->where("`$alias` $operator $sql", NULL, FALSE);
 		}
 		elseif(strtolower($statement) == 'where_in'){
-			$database->where("`$alias` IN $sql", NULL, FALSE);
+			$operator = $operator === TRUE ? 'IN' : 'NOT IN';
+			$database->where("`$alias` $operator $sql", NULL, FALSE);
 		}
 		else{
 			$database->$statement("$sql $as_alias");
