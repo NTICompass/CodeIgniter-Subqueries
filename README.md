@@ -31,6 +31,7 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
 *Parameters*:
 
  - $alias: Alias to use in query, or field to use for WHERE
+ - $operator - Operator to use for WHERE (=, !=, <, etc.)/WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN)
 
 *Returns*: None
 
