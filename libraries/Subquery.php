@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  * 
- * Version 1.3
+ * Version 1.4
  *
  * By: Eric Siegel
  * http://NTICompassInc.com
