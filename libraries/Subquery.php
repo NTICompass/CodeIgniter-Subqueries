@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  * 
- * Version 2.0
+ * Version 2.0.1
  *
  * By: Eric Siegel
  * http://NTICompassInc.com
@@ -139,13 +139,15 @@ class Subquery{
 
 	/**
 	 * join_range - Helper function to CROSS JOIN a list of numbers
+	 * From: http://stackoverflow.com/questions/4155873/mysql-find-in-set-vs-in/4156063#4156063
 	 *
 	 * @param $start - Range start
 	 * @param $end - Range end
 	 * @param $alias - Alias for number list
-	 * @param $table_name - JOINed tables need an alias(Optional)
+	 * @param $table_name - JOINed tables need an alias (optional)
+	 * @param $database - Database object to use when dbStack is empty (optional)
 	 */
-	function join_range($start, $end, $alias, $table_name='q'){
+	function join_range($start, $end, $alias, $table_name='q', $database=FALSE){
 		$range = array();
 		foreach(range($start, $end) AS $r){
 			$range[] = "SELECT $r AS $alias";
@@ -155,7 +157,7 @@ class Subquery{
 
 		$sub = $this->start_subquery('join', 'inner');
 		$sub->select($range, false);
-		$this->end_subquery($table_name);
+		$this->end_subquery($table_name, TRUE, $database);
 	}
 }
 

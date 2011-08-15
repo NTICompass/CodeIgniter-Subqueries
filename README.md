@@ -57,6 +57,7 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
  - $end: Range end
  - $alias: Alias for number list
  - $table_name: JOINed tables need an alias (Optional)
+ - $database - Database object to use when dbStack is empty (optional)
 
 *Returns*: None
 
