@@ -7,7 +7,7 @@
  * Version 2.0.1
  *
  * By: Eric Siegel
- * http://labs.nticompassInc.com
+ * http://labs.nticompassinc.com
  */
 class Subquery{
 	var $CI;
