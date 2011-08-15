@@ -69,6 +69,7 @@ class Subquery{
 	function end_subquery($alias='', $operator=TRUE){
 		$db = array_pop($this->db);
 		$sql = "({$db->_compile_select()})";
+		$db->close();
 		$as_alias = $alias!='' ? "AS $alias" : $alias;
 		$statement = array_pop($this->statement);
 		$database = (count($this->db) == 0)
@@ -106,6 +107,7 @@ class Subquery{
 		for($this->unions; $this->unions > 0; $this->unions--){
 			$db = array_pop($this->db);
 			$queries[] = $db->_compile_select();
+			$db->close();
 			array_pop($this->statement);
 		}
 		$queries = array_reverse($queries);
