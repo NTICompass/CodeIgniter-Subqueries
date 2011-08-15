@@ -30,13 +30,23 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
 **end_subquery**: Closes the database object and writes the subquery  
 *Parameters*:
 
- - $alias: Alias to use in query, or field to use for WHERE
- - $operator - Operator to use for WHERE (=, !=, <, etc.)/WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN)
+ - $alias - Alias to use in query, or field to use for WHERE
+ - $operator - Operator to use for WHERE (=, !=, <, etc.)/WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN) (optional)
+ - $database - Database object to use when dbStack is empty (optional)
 
 *Returns*: None
 
 **end_union**: Combines all opened db objects into a UNION ALL query  
-*Parameters*: None
+*Parameters*:
+
+ - $database - Database object to use when dbStack is empty (optional)
+
+*Returns*: None
+
+**defaultDB**: Sets the default database object to use
+*Parameters*:
+
+ - $database: Default database
 
 *Returns*: None
 

@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  * 
- * Version 1.4
+ * Version 2.0
  *
  * By: Eric Siegel
  * http://NTICompassInc.com
@@ -12,6 +12,7 @@
 class Subquery{
 	var $CI;
 	var $db;
+	var $dbStack;
 	var $statement;
 	var $join_type;
 	var $join_on;
@@ -19,13 +20,24 @@ class Subquery{
 
 	function __construct(){
 		$this->CI =& get_instance();
-		$this->db = array();
+		$this->db = $this->CI->db; // Default database connection
+		$this->dbStack = array();
 		$this->statement = array();
 		$this->join_type = array();
 		$this->join_on = array();
 		$this->unions = 0;
 	}
 
+	/**
+	 * defaultDB - Sets the default database object to use
+	 *
+	 * @param $database - Database object to use by default
+	 * 
+	 */
+	function defaultDB($database){
+		$this->db = $database;
+	}
+	
 	/**
 	 * start_subquery - Creates a new database object to be used for the subquery
 	 *
@@ -37,7 +49,7 @@ class Subquery{
 	 */
 	function start_subquery($statement, $join_type='', $join_on=1){
 		$db = $this->CI->load->database('', true);
-		$this->db[] = $db;
+		$this->dbStack[] = $db;
 		$this->statement[] = $statement;
 		if(strtolower($statement) == 'join'){
 			$this->join_type[] = $join_type;
@@ -63,17 +75,20 @@ class Subquery{
 	 *
 	 * @param $alias - Alias to use in query, or field to use for WHERE
 	 * @param $operator - Operator to use for WHERE (=, !=, <, etc.)/WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN)
+	 * @param $database - Database object to use when dbStack is empty (optional)
 	 *
 	 * @return none
 	 */
-	function end_subquery($alias='', $operator=TRUE){
-		$db = array_pop($this->db);
+	function end_subquery($alias='', $operator=TRUE, $database=FALSE){
+		$db = array_pop($this->dbStack);
 		$sql = "({$db->_compile_select()})";
 		$db->close();
 		$as_alias = $alias!='' ? "AS $alias" : $alias;
 		$statement = array_pop($this->statement);
-		$database = (count($this->db) == 0)
-			? $this->CI->db : $this->db[count($this->db)-1];
+		if($database === FALSE){
+			$database = (count($this->dbStack) == 0)
+				? $this->db : $this->dbStack[count($this->dbStack)-1];
+		}
 		if(strtolower($statement) == 'join'){
 			$join_type = array_pop($this->join_type);
 			$join_on = array_pop($this->join_on);
@@ -98,14 +113,14 @@ class Subquery{
 	/**
 	 * end_union - Combines all opened db objects into a UNION ALL query
 	 *
-	 * @param none
+	 * @param $database - Database object to use when dbStack is empty (optional)
 	 *
 	 * @return none
 	 */
-	 function end_union(){
+	 function end_union($database=FALSE){
 		$queries = array();
 		for($this->unions; $this->unions > 0; $this->unions--){
-			$db = array_pop($this->db);
+			$db = array_pop($this->dbStack);
 			$queries[] = $db->_compile_select();
 			$db->close();
 			array_pop($this->statement);
@@ -115,8 +130,10 @@ class Subquery{
 			$queries[0] = substr($queries[0], 7);
 		}
 		$sql = implode(' UNION ALL ', $queries);
-		$database = (count($this->db) == 0)
-			? $this->CI->db : $this->db[count($this->db)-1];
+		if($database === FALSE){
+			$database = (count($this->dbStack) == 0)
+				? $this->db : $this->dbStack[count($this->dbStack)-1];
+		}
 		$database->select($sql, false);
 	 }
 
