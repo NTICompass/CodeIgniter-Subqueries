@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  * 
- * Version 2.0.1
+ * Version 2.1
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
@@ -12,6 +12,7 @@
 class Subquery{
 	var $CI;
 	var $db;
+	var $func;
 	var $dbStack;
 	var $statement;
 	var $join_type;
@@ -21,6 +22,9 @@ class Subquery{
 	function __construct(){
 		$this->CI =& get_instance();
 		$this->db = $this->CI->db; // Default database connection
+		// https://github.com/EllisLab/CodeIgniter/pull/307
+		//$this->func = in_array('_compile_select', get_class_methods($this->db)) ? '_compile_select' : 'get_compiled_select';
+		$this->func = is_callable(array($this->db, '_compile_select')) ? '_compile_select' : 'get_compiled_select';
 		$this->dbStack = array();
 		$this->statement = array();
 		$this->join_type = array();
@@ -81,7 +85,7 @@ class Subquery{
 	 */
 	function end_subquery($alias='', $operator=TRUE, $database=FALSE){
 		$db = array_pop($this->dbStack);
-		$sql = "({$db->_compile_select()})";
+		$sql = '('.$db->{$this->func}().')';
 		$db->close();
 		$as_alias = $alias!='' ? "AS $alias" : $alias;
 		$statement = array_pop($this->statement);
@@ -89,24 +93,26 @@ class Subquery{
 			$database = (count($this->dbStack) == 0)
 				? $this->db : $this->dbStack[count($this->dbStack)-1];
 		}
-		if(strtolower($statement) == 'join'){
-			$join_type = array_pop($this->join_type);
-			$join_on = array_pop($this->join_on);
-			$database->$statement("$sql $as_alias", $join_on, $join_type);
-		}
-		elseif(strtolower($statement) == 'select'){
-			$database->$statement("$sql $as_alias", FALSE);
-		}
-		elseif(strtolower($statement) == 'where'){
-			$operator = $operator === TRUE ? '=' : $operator;
-			$database->where("`$alias` $operator $sql", NULL, FALSE);
-		}
-		elseif(strtolower($statement) == 'where_in'){
-			$operator = $operator === TRUE ? 'IN' : 'NOT IN';
-			$database->where("`$alias` $operator $sql", NULL, FALSE);
-		}
-		else{
-			$database->$statement("$sql $as_alias");
+		switch(strtolower($statement)){
+			case 'join':
+				$join_type = array_pop($this->join_type);
+				$join_on = array_pop($this->join_on);
+				$database->$statement("$sql $as_alias", $join_on, $join_type);
+				break;
+			case 'select':
+				$database->$statement("$sql $as_alias", FALSE);
+				break;
+			case 'where':
+				$operator = $operator === TRUE ? '=' : $operator;
+				$database->where("`$alias` $operator $sql", NULL, FALSE);
+				break;
+			case 'where_in':
+				$operator = $operator === TRUE ? 'IN' : 'NOT IN';
+				$database->where("`$alias` $operator $sql", NULL, FALSE);
+				break;
+			default:
+				$database->$statement("$sql $as_alias");
+				break;
 		}
 	}
 
@@ -121,7 +127,7 @@ class Subquery{
 		$queries = array();
 		for($this->unions; $this->unions > 0; $this->unions--){
 			$db = array_pop($this->dbStack);
-			$queries[] = $db->_compile_select();
+			$queries[] = $db->{$this->func}();
 			$db->close();
 			array_pop($this->statement);
 		}
