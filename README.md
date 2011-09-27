@@ -43,7 +43,7 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
 
 *Returns*: None
 
-**defaultDB**: Sets the default database object to use
+**defaultDB**: Sets the default database object to use  
 *Parameters*:
 
  - $database: Default database
