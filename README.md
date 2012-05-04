@@ -61,6 +61,14 @@ Put `Subquery.php` into application/libraries, then load it in your code.  You c
 
 *Returns*: None
 
+**dbWrapper**: Call a function using "$this->db" in a sandbox, so you don't interfere with other queries  
+*Parameters*:
+
+ - $callback: Function to call, only tested with array($obj, 'func') syntax
+ - $params...: Parameters to pass to callback
+ 
+*Returns*: Whatever the callback returns
+
 ## Examples ##
 
 **Subquery in a SELECT statement**  

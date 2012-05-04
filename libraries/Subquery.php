@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  * 
- * Version 2.1
+ * Version 2.2
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
@@ -164,6 +164,27 @@ class Subquery{
 		$sub = $this->start_subquery('join', 'inner');
 		$sub->select($range, false);
 		$this->end_subquery($table_name, TRUE, $database);
+	}
+	
+	/**
+	 * dbWrapper - Call a function using "$this->db" in a sandbox, so you don't interfere with other queries
+	 *
+	 * @param $callback - Function to call, only tested with array($obj, 'func') syntax
+	 * @param $params... - Parameters to pass to callback
+	 *
+	 * @return Whatever the callback returns
+	 */
+	function dbWrapper($callback){
+		$newdb = $this->CI->load->database('', true);
+		$cidb = $this->CI->db;
+		$this->CI->db = $newdb;
+
+		$params = func_get_args();
+		array_shift($params);
+		$ret = call_user_func_array($callback, $params);
+
+		$this->CI->db = $cidb;
+		return $ret;
 	}
 }
 
