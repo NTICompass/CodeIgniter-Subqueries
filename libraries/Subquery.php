@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  * 
- * Version 2.2
+ * Version 2.3
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
@@ -93,8 +93,7 @@ class Subquery{
 			$database = (count($this->dbStack) == 0)
 				? $this->db : $this->dbStack[count($this->dbStack)-1];
 		}
-      $alias = $database->protect_identifiers($alias);
-
+		$alias = $database->protect_identifiers($alias);
 		switch(strtolower($statement)){
 			case 'join':
 				$join_type = array_pop($this->join_type);
