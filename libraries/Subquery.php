@@ -93,6 +93,8 @@ class Subquery{
 			$database = (count($this->dbStack) == 0)
 				? $this->db : $this->dbStack[count($this->dbStack)-1];
 		}
+      $alias = $database->protect_identifiers($alias);
+
 		switch(strtolower($statement)){
 			case 'join':
 				$join_type = array_pop($this->join_type);
@@ -104,11 +106,11 @@ class Subquery{
 				break;
 			case 'where':
 				$operator = $operator === TRUE ? '=' : $operator;
-				$database->where("`$alias` $operator $sql", NULL, FALSE);
+				$database->where("$alias $operator $sql", NULL, FALSE);
 				break;
 			case 'where_in':
 				$operator = $operator === TRUE ? 'IN' : 'NOT IN';
-				$database->where("`$alias` $operator $sql", NULL, FALSE);
+				$database->where("$alias $operator $sql", NULL, FALSE);
 				break;
 			default:
 				$database->$statement("$sql $as_alias");
