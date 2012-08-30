@@ -3,45 +3,45 @@
 /**
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
- * 
+ *
  * Version 2.3
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
  */
 class Subquery{
-	var $CI;
-	var $db;
-	var $func;
-	var $dbStack;
-	var $statement;
-	var $join_type;
-	var $join_on;
-	var $unions;
+	var $CI, $db, $func,
+	$dbStack, $statement,
+	$join_type, $join_on,
+	$unions;
 
 	function __construct(){
 		$this->CI =& get_instance();
 		$this->db = $this->CI->db; // Default database connection
 		// https://github.com/EllisLab/CodeIgniter/pull/307
-		//$this->func = in_array('_compile_select', get_class_methods($this->db)) ? '_compile_select' : 'get_compiled_select';
-		$this->func = is_callable(array($this->db, '_compile_select')) ? '_compile_select' : 'get_compiled_select';
+		$this->func = is_callable(array($this->db, '_compile_select')) ? '_compile_select' :
+			is_callable(array($this->db, 'get_compiled_select')) ? 'get_compiled_select' : null;
 		$this->dbStack = array();
 		$this->statement = array();
 		$this->join_type = array();
 		$this->join_on = array();
 		$this->unions = 0;
+
+		if(is_null($this->func)){
+			show_error('Subquery library cannot run.  Missing get_compiled_select.  Please use the dev version of CodeIgniter.');
+		}
 	}
 
 	/**
 	 * defaultDB - Sets the default database object to use
 	 *
 	 * @param $database - Database object to use by default
-	 * 
+	 *
 	 */
 	function defaultDB($database){
 		$this->db = $database;
 	}
-	
+
 	/**
 	 * start_subquery - Creates a new database object to be used for the subquery
 	 *
@@ -166,7 +166,7 @@ class Subquery{
 		$sub->select($range, false);
 		$this->end_subquery($table_name, TRUE, $database);
 	}
-	
+
 	/**
 	 * dbWrapper - Call a function using "$this->db" in a sandbox, so you don't interfere with other queries
 	 *
