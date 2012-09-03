@@ -20,7 +20,7 @@ class Subquery{
 		$this->db = $this->CI->db; // Default database connection
 		// https://github.com/EllisLab/CodeIgniter/pull/307
 		$this->func = is_callable(array($this->db, '_compile_select')) ? '_compile_select' :
-			is_callable(array($this->db, 'get_compiled_select')) ? 'get_compiled_select' : null;
+			(is_callable(array($this->db, 'get_compiled_select')) ? 'get_compiled_select' : null);
 		$this->dbStack = array();
 		$this->statement = array();
 		$this->join_type = array();
