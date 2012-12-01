@@ -4,23 +4,23 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  *
- * Version 2.3
+ * Version 2.4
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
  */
 class Subquery{
-	var $CI, $db, $func,
-	$dbStack, $statement,
-	$join_type, $join_on,
-	$unions;
+	var $CI, $db, $prefix, $func, $dbStack, $statement, $join_type, $join_on, $unions;
 
 	function __construct(){
 		$this->CI =& get_instance();
 		$this->db = $this->CI->db; // Default database connection
+		$this->prefix = trim($this->db->dbprefix(' '));
+
 		// https://github.com/EllisLab/CodeIgniter/pull/307
 		$this->func = is_callable(array($this->db, '_compile_select')) ? '_compile_select' :
 			(is_callable(array($this->db, 'get_compiled_select')) ? 'get_compiled_select' : null);
+
 		$this->dbStack = array();
 		$this->statement = array();
 		$this->join_type = array();
@@ -40,6 +40,7 @@ class Subquery{
 	 */
 	function defaultDB($database){
 		$this->db = $database;
+		$this->prefix = trim($this->db->dbprefix(' '));
 	}
 
 	/**
@@ -53,6 +54,8 @@ class Subquery{
 	 */
 	function start_subquery($statement, $join_type='', $join_on=1){
 		$db = $this->CI->load->database('', true);
+		$db->set_dbprefix($this->prefix);
+
 		$this->dbStack[] = $db;
 		$this->statement[] = $statement;
 		if(strtolower($statement) == 'join'){
@@ -177,6 +180,8 @@ class Subquery{
 	 */
 	function dbWrapper($callback){
 		$newdb = $this->CI->load->database('', true);
+		$newdb->set_dbprefix($this->prefix);
+
 		$cidb = $this->CI->db;
 		$this->CI->db = $newdb;
 
