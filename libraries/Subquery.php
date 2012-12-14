@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  *
- * Version 2.4
+ * Version 2.4.1
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
@@ -54,7 +54,9 @@ class Subquery{
 	 */
 	function start_subquery($statement, $join_type='', $join_on=1){
 		$db = $this->CI->load->database('', true);
-		$db->set_dbprefix($this->prefix);
+		if(is_callable(array($db, 'set_dbprefix'))){
+			$db->set_dbprefix($this->prefix);
+		}
 
 		$this->dbStack[] = $db;
 		$this->statement[] = $statement;
@@ -180,7 +182,9 @@ class Subquery{
 	 */
 	function dbWrapper($callback){
 		$newdb = $this->CI->load->database('', true);
-		$newdb->set_dbprefix($this->prefix);
+		if(is_callable(array($newdb, 'set_dbprefix'))){
+			$newdb->set_dbprefix($this->prefix);
+		}
 
 		$cidb = $this->CI->db;
 		$this->CI->db = $newdb;
