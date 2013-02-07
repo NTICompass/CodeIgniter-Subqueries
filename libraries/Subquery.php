@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  *
- * Version 2.4.1
+ * Version 2.5
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
@@ -60,9 +60,11 @@ class Subquery{
 
 		$this->dbStack[] = $db;
 		$this->statement[] = $statement;
-		if(strtolower($statement) == 'join'){
-			$this->join_type[] = $join_type;
-			$this->join_on[] = $join_on;
+		switch(strtolower($statement)){
+			case 'join':
+				$this->join_type[] = $join_type;
+				$this->join_on[] = $join_on;
+				break;
 		}
 		return $db;
 	}
@@ -83,7 +85,8 @@ class Subquery{
 	 * end_subquery - Closes the database object and writes the subquery
 	 *
 	 * @param $alias - Alias to use in query, or field to use for WHERE
-	 * @param $operator - Operator to use for WHERE (=, !=, <, etc.)/WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN)
+	 * @param $operator - Operator to use for WHERE (=, !=, <, etc.) / WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN)
+	 *        $if_null - If it's a SELECT, this will turn it into COALESCE((SELECT ...), $if_null) AS $alias
 	 * @param $database - Database object to use when dbStack is empty (optional)
 	 *
 	 * @return none
@@ -106,7 +109,13 @@ class Subquery{
 				$database->$statement("$sql $as_alias", $join_on, $join_type);
 				break;
 			case 'select':
-				$database->$statement("$sql $as_alias", FALSE);
+				if($operator !== TRUE){
+					$operator = $database->escape($operator);
+					$database->$statement("COALESCE($sql, $operator) $as_alias", FALSE);
+				}
+				else{
+					$database->$statement("$sql $as_alias", FALSE);
+				}
 				break;
 			case 'where':
 				$operator = $operator === TRUE ? '=' : $operator;
