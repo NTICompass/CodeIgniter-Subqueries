@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  *
- * Version 2.5
+ * Version 2.5.1
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
@@ -15,21 +15,28 @@ class Subquery{
 	function __construct(){
 		$this->CI =& get_instance();
 		$this->db = $this->CI->db; // Default database connection
-		$this->prefix = trim($this->db->dbprefix(' '));
 
 		// https://github.com/EllisLab/CodeIgniter/pull/307
-		$this->func = is_callable(array($this->db, '_compile_select')) ? '_compile_select' :
-			(is_callable(array($this->db, 'get_compiled_select')) ? 'get_compiled_select' : null);
+		$canRun = FALSE;
+		$functions = array('_compile_select', 'get_compiled_select');
 
+		foreach($functions as $func){
+			if($canRun = is_callable(array($this->db, $func))){
+				$this->func = $func;
+				break;
+			}
+		}
+
+		if(!$canRun){
+			show_error("Subquery library cannot run.  Missing get_compiled_select.  Please see the library's documentation.");
+		}
+
+		$this->prefix = trim($this->db->dbprefix(' '));
 		$this->dbStack = array();
 		$this->statement = array();
 		$this->join_type = array();
 		$this->join_on = array();
 		$this->unions = 0;
-
-		if(is_null($this->func)){
-			show_error('Subquery library cannot run.  Missing get_compiled_select.  Please use the dev version of CodeIgniter.');
-		}
 	}
 
 	/**
@@ -71,8 +78,6 @@ class Subquery{
 
 	/**
 	 * start_union - Creates a new database object to be used for unions
-	 *
-	 * NOTE: Please do all 'ORDER BY' or other modifiers BEFORE start_union
 	 *
 	 * @return A new database object to use for a union query
 	 */

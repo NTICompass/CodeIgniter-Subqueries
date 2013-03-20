@@ -1,171 +1,141 @@
-Active Record Subqueries
-========================
+Subqueries.  For CodeIgniter.
+=============================
+**By [NTICompass][1] (aka Rocket Hazmat)**
+
 
 ## Informtion ##
+This is a subquery library for CodeIgniter’s (1.7.x - 2.0.2) active record class.  It lets you use the active record methods to create subqueries in your SQL.
 
-This is a subquery library for CodeIgniter’s (1.7.x and 2.x) active record class.  It lets you use active record methods to create subqueries in SQL queries.
-It supports SELECT, JOIN, FROM (and other statements). It also supports UNION ALL.  You can have subqueries inside subqueries inside UNIONS, etc.
+It supports `SELECT`, `JOIN`, `FROM`, `WHERE`, etc. It also supports `UNION ALL`!
+
+<sub>(Yes, you can have subqueries inside subqueries inside `UNION`s and `UNION`s inside subqueries.)</sub>
 
 ## Instructions ##
+Put `Subquery.php` into `/application/libraries`, then load it in your code using `$this->load->library('subquery');`.
+I guess you can add `'subquery'` to `$autoload['libraries']` (in `/application/config/autoload.php`), if you want.
 
-Put `Subquery.php` into application/libraries, then load it in your code.  You can add `subquery` to `$autoload['libraries']` in application/config/autoload.php, or load it by calling `$this->load->library('Subquery')`.
+### CodeIgniter 2.1.x ###
+This library doesn't work with CodeIgniter 2.1.x out of the box.  It requires modifications to a file in `/system` to make it work.
+
+You need to edit `/system/database/DB_active_rec.php` and modify the signature of `_compile_select` (should be line 1673).
+In the older version(s) of CodeIgniter, this function was *not* `protected`, so if you remove the `protected` keyword from the function, my library will work.
+
+<sub>(There's probably a reason this function is `protected`.)</sub>
+
+In the `develop` version of CodeIgniter (which works with this library just fine, by the way), there is a `public` function that you can use.
+You can "steal" the `get_compiled_select` function from the `/system/database/DB_query_builder.php` file (line 1283).
+
+    /**
+     * Get SELECT query string
+     *
+     * Compiles a SELECT query string and returns the sql.
+     *
+     * @param    string    the table name to select from (optional)
+     * @param    bool    TRUE: resets QB values; FALSE: leave QB vaules alone
+     * @return    string
+     */
+    public function get_compiled_select($table = '', $reset = TRUE)
+    {
+        if ($table !== '')
+        {
+            $this->_track_aliases($table);
+            $this->from($table);
+        }
+
+        $select = $this->_compile_select();
+
+        if ($reset === TRUE)
+        {
+            $this->_reset_select();
+        }
+
+        return $select;
+    }
+
+Put this function inside `/system/database/DB_active_rec.php`.
+
+My library will check for the existance of either a `_compile_select` or `get_compiled_select` method.
+If none of these methods exist, the library will fail to load.
 
 ## Methods ##
 
-**start_subquery**: Creates a new database object to be used for the subquery  
-*Parameters*:
-
- - $statement: SQL statement to put subquery into (select, from, join, etc.)
- - $join_type: JOIN type (only for join statements)
- - $join_on: JOIN ON clause (only for join statements)
-
-*Returns*: A new database object to use for subqueries
-
-**start_union**: Creates a new database object to be used for unions  
-*Parameters*: None
-
-*Returns*: A new database object to use for a union query  
-***Note***: Please do all 'ORDER BY' or other modifiers BEFORE start_union
-
-**end_subquery**: Closes the database object and writes the subquery  
-*Parameters*:
-
- - $alias - Alias to use in query, or field to use for WHERE
- - $operator - Operator to use for WHERE (=, !=, <, etc.)/WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN) (optional)
- - $database - Database object to use when dbStack is empty (optional)
-
-*Returns*: None
-
-**end_union**: Combines all opened db objects into a UNION ALL query  
-*Parameters*:
-
- - $database - Database object to use when dbStack is empty (optional)
-
-*Returns*: None
-
-**defaultDB**: Sets the default database object to use  
-*Parameters*:
-
- - $database: Default database
-
-*Returns*: None
-
-**join_range**: Helper function to CROSS JOIN a list of numbers (From [this][1] StackOverflow answer)  
-*Parameters*:
-
- - $start: Range start
- - $end: Range end
- - $alias: Alias for number list
- - $table_name: JOINed tables need an alias (Optional)
- - $database - Database object to use when dbStack is empty (optional)
-
-*Returns*: None
-
-**dbWrapper**: Call a function using "$this->db" in a sandbox, so you don't interfere with other queries  
-*Parameters*:
-
- - $callback: Function to call, only tested with array($obj, 'func') syntax
- - $params...: Parameters to pass to callback
- 
-*Returns*: Whatever the callback returns
+- `start_subquery`: Creates a new database object to be used for the subquery
+  - Parameters:
+      - `$statement`: SQL statement to put subquery into ('select', 'from', 'join', 'where', 'where_in', etc.)
+      - `$join_type`: JOIN type (only for join statements)
+      - `$join_on`: JOIN ON clause (only for join statements)
+  - Returns: CodeIgniter db object to call active record methods on
+- `end_subquery`: Closes the database object and writes the subquery
+  - Parameters:
+      - `$alias`: Alias to use in query, or field to use for WHERE
+      - `$operator`: Operator to use for WHERE ('=', '!=', '<', etc.) / WHERE IN (TRUE for WHERE IN, FALSE for WHERE NOT IN)
+          - If it's a SELECT, this parameter will turn it into `COALESCE((SELECT ...), $operator) AS $alias`
+      - `$database`: Database object to use when dbStack is empty (optional)
+  - Returns: Nothing
+- `start_union`: Creates a new database object to be used for unions
+  - Parameters: None
+  - Returns: CodeIgniter db object to call active record methods on
+- `end_union`: Combines all opened db objects into a `UNION ALL` query
+  - Parameters:
+      - `$database`: Database object to use when dbStack is empty (optional)
+  - Returns: Nothing
 
 ## Examples ##
 
-**Subquery in a SELECT statement**  
-*SQL*:
+The most basic use of this library is to have a subquery in a `SELECT` statement.  This is very simple.
+Let's say you want to get this query:
 
-    SELECT `word`, (SELECT `number` FROM (`numbers`) WHERE `numberID` = 2) AS number FROM (`words`) WHERE `wordID` = 3
+    SELECT field1, (SELECT field2 FROM table2 WHERE table1.field3 = table2.field3) as field2X
+    FROM table1 WHERE field4 = 'test'
 
-*Active Record*:
+You would do this in your code:
 
-    $this->db->select('word')->from('words')->where('wordID', 3);
     $sub = $this->subquery->start_subquery('select');
-    $sub->select('number')->from('numbers')->where('numberID', 2);
-    $this->subquery->end_subquery('number'); 
+    $sub->select('field2')->from('table2');
+    $sub->where('table1.field3 = table2.field3');
+    $this->subquery->end_subquery('field2X');
+    $this->db->from('table1')
+    $this->db->where('field4', 'test');
 
-**Subquery in a WHERE statement**  
-*SQL*:
+It's possible your subquery could return a `NULL` row, let's say you want a default value in that case.  You can do that:
 
-    SELECT `test`, `test2` FROM table WHERE id IN (SELECT IDs FROM idTable WHERE date = '2011-07-10')
+    $sub = $this->subquery->start_subquery('select');
+    $sub->select('field2')->from('table2');
+    $sub->where('table1.field3 = table2.field3');
+    $this->subquery->end_subquery('field2X', field5);
+    $this->db->from('table1')
+    $this->db->where('field4', 'test');
 
-*Active Record*:
+This will generate:
 
-    $this->db->select('test');
-    $this->db->select('test2');
-    $this->db->from('table');
+    SELECT field1, COALESCE((SELECT field2 FROM table2 WHERE table1.field3 = table2.field3), field5) as field2X
+    FROM table1 WHERE field4 = 'test'
+
+
+By passing different values to `start_subquery`, you can make this library do anyting!
+
+Here's a `WHERE IN` example:
+
+    $this->db->select('field1, field2')->from('table1');
     $sub = $this->subquery->start_subquery('where_in');
-    $sub->select('IDs');
-    $sub->from('idTable');
-    $sub->where('date', '2011-07-10');
-    $this->subquery->end_subquery('id');
-    
-**Subquery in a WHERE statement**  
-*SQL*:
+    $sub->select('field3')->from('table2')->where('field2', 'test');
+    $this->subquery->end_subquery('field4', FALSE);
 
-    SELECT `test`, `test2` FROM table WHERE id = (SELECT IDs FROM idTable WHERE date = '2011-07-10' AND name = 'Eric')
+This will generate:
 
-*Active Record*:
+    SELECT field1, field2 FROM table1
+    WHERE field4 NOT IN (SELECT field3 FROM table2 WHERE field2 = 'test')
 
-    $this->db->select('test');
-    $this->db->select('test2');
-    $this->db->from('table');
-    $sub = $this->subquery->start_subquery('where');
-    $sub->select('IDs');
-    $sub->from('idTable');
-    $sub->where('date', '2011-07-10');
-    $sub->where('name', 'Eric');
-    $this->subquery->end_subquery('id');
-
-**Subquery in a FROM statement**  
-*SQL*:
-
-    SELECT `test`, `test2` FROM ((SELECT 3 AS test) AS testing, (SELECT 4 AS test2) AS testing2) 
-
-*Active Record*:
-
-    $this->db->select('test');
-    $sub = $this->subquery->start_subquery('from');
-    $sub->select('3 AS test', false);
-    $this->subquery->end_subquery('testing');
-    $this->db->select('test2');
-    $sub = $this->subquery->start_subquery('from');
-    $sub->select('4 AS test2', false);
-    $this->subquery->end_subquery('testing2');
-
-**Subquery in a JOIN statement**  
-*SQL*:
-
-    SELECT `test`.`a`, `t`.`b`, `test`.`field`
-    FROM `test`
-    LEFT JOIN (SELECT `ID`,`b` FROM `test2` WHERE `date` > '2011-01-01') AS `t` ON `t`.`ID` = `test`.`ID`
-    WHERE `test`.`field` = 4
-
-*Active Record*:
-
-    $this->db->select('test.a, t.b, test.field');
-    $this->db->from('test');
-    $sub = $this->subquery->start_subquery('join', 'left', 't.ID=test.ID');
-    $sub->select('ID, b')->from('test2')->where('date >', '2011-01-01');
-    $this->subquery->end_subquery('t');
-    $this->db->where('test.field', 4);
-
-**UNION ALL**  
-*SQL*:
-
-    SELECT 1 AS A
-    UNION ALL
-    SELECT 2 AS A
-    UNION ALL
-    SELECT 3 AS A
-
-*Active Record*:
+`UNION` queries have a *slightly* different syntax.  For subqueries, every `start_subquery` needs an `end_subquery`,
+but with `UNION` you only need one `end_union` - no matter how many `start_union`s you have.
 
     $sub1 = $this->subquery->start_union();
-    $sub1->select('1 AS A', false);
+    $sub1->select('field1')->from('table1');
     $sub2 = $this->subquery->start_union();
-    $sub2->select('2 AS A', false);
+    $sub2->select('field2')->from('table2');
     $sub3 = $this->subquery->start_union();
-    $sub3->select('3 AS A', false);
+    $sub3->select('field3')->from('table3');
     $this->subquery->end_union();
+    $this->db->order_by('field1', 'DESC');
 
-  [1]: http://stackoverflow.com/questions/4155873/mysql-find-in-set-vs-in/4156063#4156063
+  [1]: http://labs.nticompassinc.com
