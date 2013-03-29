@@ -90,6 +90,7 @@ Let's say you want to get this query:
 
 You would do this in your code:
 
+    $this->db->select('field1');
     $sub = $this->subquery->start_subquery('select');
     $sub->select('field2')->from('table2');
     $sub->where('table1.field3 = table2.field3');
@@ -97,11 +98,13 @@ You would do this in your code:
     $this->db->from('table1')
     $this->db->where('field4', 'test');
 
-It's possible your subquery could return a `NULL` row, let's say you want a default value in that case.  You can do that:
+If it's possible that your subquery might return a `NULL` row, you can set a default value.  That's done like this:
 
+    $this->db->select('field1');
     $sub = $this->subquery->start_subquery('select');
     $sub->select('field2')->from('table2');
     $sub->where('table1.field3 = table2.field3');
+    // Note the second parameter here
     $this->subquery->end_subquery('field2X', field5);
     $this->db->from('table1')
     $this->db->where('field4', 'test');
