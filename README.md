@@ -105,7 +105,7 @@ If it's possible that your subquery might return a `NULL` row, you can set a def
     $sub->select('field2')->from('table2');
     $sub->where('table1.field3 = table2.field3');
     // Note the second parameter here
-    $this->subquery->end_subquery('field2X', field5);
+    $this->subquery->end_subquery('field2X', 'field5');
     $this->db->from('table1')
     $this->db->where('field4', 'test');
 
