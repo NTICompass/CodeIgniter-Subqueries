@@ -3,7 +3,7 @@
 <head>
   <meta charset='utf-8'>
 
-  <title>NTICompass/CodeIgniter-Subqueries @ GitHub</title>
+  <title>Subqueries. For CodeIgniter.</title>
 
   <style type="text/css">
     body {
@@ -42,22 +42,65 @@
         <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
     </div>
 
-    <h1><a href="http://github.com/NTICompass/CodeIgniter-Subqueries">CodeIgniter-Subqueries</a>
-      <span class="small">by <a href="http://github.com/NTICompass">NTICompass</a></span></h1>
+    <h1><a href="http://github.com/NTICompass/CodeIgniter-Subqueries">Subqueries.<br/>For CodeIgniter.</a>
+		<br/>
+      <span class="small">by <a href="http://github.com/NTICompass">NTICompass</a> (aka Rocket Hazmat)</span></h1>
 
     <div class="description">
       An active record subquery library for CodeIgniter.
     </div>
 
-    <p>Adds subquery capabilities to CodeIgniter's Active Record class.</p><h2>Dependencies</h2>
-<p>PHP5<br/>CodeIgniter 1.7.x or 2.x</p>
+    <p>This is a subquery library for CodeIgniter’s active record class. It lets you use the active record methods to create subqueries in your SQL.</p><h2>Dependencies</h2>
+<p>PHP5<br/>CodeIgniter 1.7.x - 2.0.2 (Works with <a href="#ci21x">2.1.x</a>, but some modifications are required)</p>
 <h2>Install</h2>
-<p>Put Subquery.php into application/libraries, then load it in your code.<br/>You can add subquery to $autoload['libraries'] in application/config/autoload.php, or load it by calling $this->load->library('Subquery').</p>
+<p>Put <code>Subquery.php</code> into <code>/application/libraries</code>,<br/>then load it in your code using <code>$this->load->library('subquery');</code>.<br/><br/>I guess you can add <code>'subquery'</code> to<br/><code>$autoload['libraries']</code> (in <code>/application/config/autoload.php</code>), if you want.</p>
+<h2><a name="ci21x">CodeIgniter 2.1.x</a></h2>
+<p>
+This library doesn't work with CodeIgniter 2.1.x out of the box. It requires modifications to a file in <code>/system</code> to make it work.
+<br/><br/>
+You need to edit <code>/system/database/DB_active_rec.php</code> and modify the signature of <code>_compile_select</code> (should be line 1673). In the older version(s) of CodeIgniter, this function was not protected, so if you remove the protected keyword from the function, my library will work.
+<br/><br/>
+<sub>(There's probably a reason this function is protected.)</sub>
+<br/><br/>
+In the develop version of CodeIgniter (which works with this library just fine, by the way), there is a public function that you can use. You can "steal" the <code>get_compiled_select</code> function from the <code>/system/database/DB_query_builder.php</code> file (line 1283).
+
+<code><pre>
+/**
+ * Get SELECT query string
+ *
+ * Compiles a SELECT query string and returns the sql.
+ *
+ * @param    string    the table name to select from (optional)
+ * @param    bool    TRUE: resets QB values; FALSE: leave QB vaules alone
+ * @return    string
+ */
+public function get_compiled_select($table = '', $reset = TRUE)
+{
+    if ($table !== '')
+    {
+        $this->_track_aliases($table);
+        $this->from($table);
+    }
+
+    $select = $this->_compile_select();
+
+    if ($reset === TRUE)
+    {
+        $this->_reset_select();
+    }
+
+    return $select;
+}
+</pre></code>
+Put this function inside <code>/system/database/DB_active_rec.php</code>.
+<br/><br/>
+My library will check for the existance of either a <code>_compile_select</code> or <code>get_compiled_select method</code>. If none of these methods exist, the library will fail to load.
+</p>
 <h2>Authors</h2>
-<p>Rocket (NTICompass@gmail.com)
+<p>Rocket Hazmat(NTICompass@gmail.com)
 <br/>      </p>
 <h2>Contact</h2>
-<p>Rocket (NTICompass@gmail.com)
+<p>Rocket Hazmat(NTICompass@gmail.com)
 <br/>      </p>
 
 
