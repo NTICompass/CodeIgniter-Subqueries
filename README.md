@@ -3,7 +3,7 @@ Subqueries.  For CodeIgniter.
 **By [NTICompass][1] (aka Rocket Hazmat)**
 
 
-## Informtion ##
+## Information ##
 This is a subquery library for CodeIgniter’s (1.7.x - 2.0.2) active record class.  It lets you use the active record methods to create subqueries in your SQL.
 
 It supports `SELECT`, `JOIN`, `FROM`, `WHERE`, etc. It also supports `UNION ALL`!
