@@ -4,7 +4,7 @@
  * NTICompass' CodeIgniter Subquery Library
  * (Requires Active Record and PHP5)
  *
- * Version 2.5.1
+ * Version 2.6
  *
  * By: Eric Siegel
  * http://labs.nticompassinc.com
@@ -69,6 +69,7 @@ class Subquery{
 		$this->statement[] = $statement;
 		switch(strtolower($statement)){
 			case 'join':
+			case 'join_on':
 				$this->join_type[] = $join_type;
 				$this->join_on[] = $join_on;
 				break;
@@ -112,6 +113,15 @@ class Subquery{
 				$join_type = array_pop($this->join_type);
 				$join_on = array_pop($this->join_on);
 				$database->$statement("$sql $as_alias", $join_on, $join_type);
+				break;
+			case 'join_on':
+				$join_type = array_pop($this->join_type);
+				$join_on = array_pop($this->join_on);
+				$operator = $operator === TRUE ? '=' : $operator;
+				// Hack to get around the regex in JOIN
+				// /([\w\.]+)([\W\s]+)(.+)/
+				$sql = preg_replace('/(\n|\r\n)/', ' ', $sql);
+				$database->join($join_on, "$alias $operator $sql", $join_type);
 				break;
 			case 'select':
 				if($operator !== TRUE){
