@@ -143,6 +143,7 @@ class Subquery{
 			case 'where_exists':
 				$operator = $operator === TRUE ? 'EXISTS' : 'NOT EXISTS';
 				$database->where("$operator $sql", NULL, FALSE);
+				break;
 			default:
 				$database->$statement("$sql $as_alias");
 				break;
