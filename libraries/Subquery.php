@@ -136,6 +136,10 @@ class Subquery{
 				$operator = $operator === TRUE ? '=' : $operator;
 				$database->where("$alias $operator $sql", NULL, FALSE);
 				break;
+			case 'or_where':
+				$operator = $operator === TRUE ? '=' : $operator;
+				$database->or_where("$alias $operator $sql", NULL, FALSE);
+				break;
 			case 'where_in':
 				$operator = $operator === TRUE ? 'IN' : 'NOT IN';
 				$database->where("$alias $operator $sql", NULL, FALSE);
