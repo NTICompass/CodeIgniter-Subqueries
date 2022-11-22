@@ -148,6 +148,18 @@ class Subquery{
 				$operator = $operator === TRUE ? 'EXISTS' : 'NOT EXISTS';
 				$database->where("$operator $sql", NULL, FALSE);
 				break;
+			case 'from':
+				$sql = preg_replace_callback('/(GROUP BY (.+?))(?:\s+HAVING .+|\s+ORDER BY .+|\s+LIMIT .+|\)?\s*$)/i', function($matches){
+					$groups = preg_split('/,\s?/', $matches[2]);
+					foreach($groups as &$group){
+						$group = preg_replace('/^`?([^`]+)`?(?:\s?(DESC|ASC)?)$/i', '($1) $2', $group);
+					}
+					unset($group);
+
+					return 'GROUP BY '.implode(',', $groups).(preg_match('/\)$/', $matches[0]) === 1 ? ')' : '');
+				}, $sql);
+				$database->$statement("$sql $as_alias");
+				break;
 			default:
 				$database->$statement("$sql $as_alias");
 				break;
