@@ -1,6 +1,6 @@
 Subqueries.  For CodeIgniter.
 =============================
-**By [NTICompass][1] (aka Rocket Hazmat)**
+**By Eric Siegel**
 
 
 ## Information ##
